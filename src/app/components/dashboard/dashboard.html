@@ -1,0 +1,65 @@
+<div class="dashboard">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <h1>📊 API Analytics Dashboard</h1>
+        <p class="refresh-info">Auto-refreshes every 10s · Last updated: {{ lastRefreshed | date:'HH:mm:ss' }}</p>
+      </div>
+      <button class="btn-logout" (click)="logout()">Logout</button>
+    </header>
+  
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Loading analytics...</p>
+    </div>
+  
+    <!-- Error State -->
+    <div class="error-container" *ngIf="errorMessage && !loading">
+      <p>⚠️ {{ errorMessage }}</p>
+      <button (click)="loadData()">Retry</button>
+    </div>
+  
+    <!-- Empty State -->
+    <div class="empty-container" *ngIf="!loading && !errorMessage && summaries.length === 0">
+      <h3>📭 No API data yet</h3>
+      <p>Make some requests through the gateway (port 8000) and wait ~60 seconds for analytics to appear.</p>
+    </div>
+  
+    <!-- Stats Grid -->
+    <div class="stats-grid" *ngIf="!loading && summaries?.length">
+      <div class="stat-card" *ngFor="let s of summaries" (click)="viewDetail(s.apiName)">
+        <div class="card-header">
+          <span class="api-name">{{ s.apiName }}</span>
+          <span class="status-dot" [ngClass]="getStatusColor(s.errorRate)"></span>
+        </div>
+  
+        <div class="metrics-row">
+          <div class="metric">
+            <span class="metric-value">{{ s.totalRequests | number }}</span>
+            <span class="metric-label">Total Requests</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" [ngClass]="getStatusColor(s.errorRate)">
+              {{ s.errorRate | number:'1.1-1' }}%
+            </span>
+            <span class="metric-label">Error Rate</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">{{ s.avgLatencyMs | number:'1.0-0' }}ms</span>
+            <span class="metric-label">Avg Latency</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" [ngClass]="getLatencyStatus(s.p95LatencyMs)">
+              {{ s.p95LatencyMs | number:'1.0-0' }}ms
+            </span>
+            <span class="metric-label">P95 Latency</span>
+          </div>
+        </div>
+  
+        <div class="card-footer">
+          <span>Click for detailed view →</span>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,24 @@
+<div class="auth-container">
+    <div class="auth-card">
+      <h2>🔐 API Analyzer Login</h2>
+      <p class="subtitle">Sign in to view your analytics dashboard</p>
+  
+      <div class="error-msg" *ngIf="errorMessage">{{ errorMessage }}</div>
+  
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" [(ngModel)]="email" placeholder="test@example.com" />
+      </div>
+  
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" [(ngModel)]="password" placeholder="••••••••" />
+      </div>
+  
+      <button class="btn-primary" (click)="onSubmit()" [disabled]="loading">
+        {{ loading ? 'Logging in...' : 'Login' }}
+      </button>
+  
+      <p class="link-text">Don't have an account? <a routerLink="/register">Register here</a></p>
+    </div>
+  </div>

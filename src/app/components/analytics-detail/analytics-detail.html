@@ -1,0 +1,165 @@
+<div class="detail-page">
+
+    <!-- Header -->
+    <header class="header">
+      <button class="btn-back" (click)="goBack()">← Back to Dashboard</button>
+      <div class="header-title">
+        <h1>📈 API Detail View</h1>
+        <p class="api-path">{{ apiName }}</p>
+      </div>
+      <button class="btn-refresh" (click)="loadData()">🔄 Refresh</button>
+    </header>
+  
+    <!-- Loading -->
+    <div class="center-content" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Loading analytics...</p>
+    </div>
+  
+    <!-- Error -->
+    <div class="center-content" *ngIf="errorMessage && !loading">
+      <p class="error-text">⚠️ {{ errorMessage }}</p>
+      <button class="btn-retry" (click)="loadData()">Try Again</button>
+    </div>
+  
+    <!-- Main Content -->
+    <div class="content" *ngIf="summary && !loading">
+  
+      <!-- Health Badge -->
+      <div class="health-banner" [ngClass]="getHealthStatus(summary).cssClass">
+        <span class="health-icon">{{ getHealthStatus(summary).icon }}</span>
+        <div>
+          <strong>Overall Health: {{ getHealthStatus(summary).label }}</strong>
+          <p>Based on error rate and P95 latency thresholds</p>
+        </div>
+      </div>
+  
+      <!-- Key Metrics Cards -->
+      <div class="metrics-grid">
+  
+        <div class="metric-card">
+          <div class="metric-icon">📦</div>
+          <div class="metric-value">{{ summary.totalRequests | number }}</div>
+          <div class="metric-label">Total Requests</div>
+        </div>
+  
+        <div class="metric-card" [ngClass]="summary.errorRate > 5 ? 'card-warning' : 'card-ok'">
+          <div class="metric-icon">❌</div>
+          <div class="metric-value">{{ summary.errorRate | number:'1.2-2' }}%</div>
+          <div class="metric-label">Error Rate</div>
+          <div class="metric-threshold">Threshold: &lt; 5%</div>
+        </div>
+  
+        <div class="metric-card">
+          <div class="metric-icon">⏱️</div>
+          <div class="metric-value">{{ summary.avgLatencyMs | number:'1.0-0' }} ms</div>
+          <div class="metric-label">Avg Latency</div>
+        </div>
+  
+        <div class="metric-card" [ngClass]="summary.p95LatencyMs > 500 ? 'card-warning' : 'card-ok'">
+          <div class="metric-icon">📊</div>
+          <div class="metric-value">{{ summary.p95LatencyMs | number:'1.0-0' }} ms</div>
+          <div class="metric-label">P95 Latency</div>
+          <div class="metric-threshold">Threshold: &lt; 500ms</div>
+        </div>
+  
+        <div class="metric-card" [ngClass]="summary.p99LatencyMs > 1000 ? 'card-warning' : 'card-ok'">
+          <div class="metric-icon">🔝</div>
+          <div class="metric-value">{{ summary.p99LatencyMs | number:'1.0-0' }} ms</div>
+          <div class="metric-label">P99 Latency</div>
+          <div class="metric-threshold">Threshold: &lt; 1000ms</div>
+        </div>
+  
+      </div>
+  
+      <!-- Latency Bar Chart -->
+      <div class="section-card">
+        <h2>📉 Latency Breakdown</h2>
+        <p class="section-subtitle">Visual comparison of average, P95, and P99 response times</p>
+  
+        <div class="bar-chart">
+          <div class="bar-row" *ngFor="let bar of latencyBars">
+            <div class="bar-label">{{ bar.label }}</div>
+            <div class="bar-track">
+              <div
+                class="bar-fill"
+                [style.width]="getBarWidth(bar.value, bar.maxValue)"
+                [style.background]="bar.color"
+              ></div>
+            </div>
+            <div class="bar-value">{{ bar.value | number:'1.0-0' }} ms</div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Recommendations -->
+      <div class="section-card">
+        <h2>💡 Intelligent Recommendations</h2>
+        <p class="section-subtitle">Auto-generated based on your current metrics</p>
+  
+        <ul class="recommendations-list">
+          <li *ngFor="let tip of getRecommendations(summary)" class="recommendation-item">
+            {{ tip }}
+          </li>
+        </ul>
+      </div>
+  
+      <!-- SLA Summary Table -->
+      <div class="section-card">
+        <h2>📋 SLA Compliance Summary</h2>
+        <table class="sla-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Current Value</th>
+              <th>Target</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Error Rate</td>
+              <td>{{ summary.errorRate | number:'1.2-2' }}%</td>
+              <td>&lt; 5%</td>
+              <td>
+                <span class="badge" [ngClass]="summary.errorRate < 5 ? 'badge-ok' : 'badge-fail'">
+                  {{ summary.errorRate < 5 ? '✅ Pass' : '❌ Fail' }}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Avg Latency</td>
+              <td>{{ summary.avgLatencyMs | number:'1.0-0' }} ms</td>
+              <td>&lt; 500ms</td>
+              <td>
+                <span class="badge" [ngClass]="summary.avgLatencyMs < 500 ? 'badge-ok' : 'badge-fail'">
+                  {{ summary.avgLatencyMs < 500 ? '✅ Pass' : '❌ Fail' }}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>P95 Latency</td>
+              <td>{{ summary.p95LatencyMs | number:'1.0-0' }} ms</td>
+              <td>&lt; 500ms</td>
+              <td>
+                <span class="badge" [ngClass]="summary.p95LatencyMs < 500 ? 'badge-ok' : 'badge-fail'">
+                  {{ summary.p95LatencyMs < 500 ? '✅ Pass' : '❌ Fail' }}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>P99 Latency</td>
+              <td>{{ summary.p99LatencyMs | number:'1.0-0' }} ms</td>
+              <td>&lt; 1000ms</td>
+              <td>
+                <span class="badge" [ngClass]="summary.p99LatencyMs < 1000 ? 'badge-ok' : 'badge-fail'">
+                  {{ summary.p99LatencyMs < 1000 ? '✅ Pass' : '❌ Fail' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+  
+    </div>
+  </div>
