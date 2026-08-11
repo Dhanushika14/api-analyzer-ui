@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/api-analyzer-ui",
+  "outputDirectory": "dist",
   "installCommand": "npm ci",
   "framework": "angular",
   "rewrites": [
